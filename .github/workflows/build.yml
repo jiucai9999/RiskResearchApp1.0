@@ -25,10 +25,7 @@ jobs:
 
       - name: Build EXE
         run: |
-          pyinstaller app.py ^
-            --onefile ^
-            --noconsole ^
-            --name RiskResearchApp
+          pyinstaller app.py --onefile --noconsole --collect-all streamlit --name RiskResearchApp
 
       - name: Upload EXE
         uses: actions/upload-artifact@v4
