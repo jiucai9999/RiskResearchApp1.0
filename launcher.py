@@ -1,41 +1,35 @@
 import subprocess
-import threading
-import time
-import webview
-import socket
 import sys
 import os
 
-def is_port_open(port):
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    try:
-        s.connect(("127.0.0.1", port))
-        s.close()
-        return True
-    except:
-        return False
+def main():
+    # PyInstaller 解包路径
+    base_dir = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
+    app_path = os.path.join(base_dir, "app.py")
 
-def run_streamlit():
-    app_path = os.path.join(os.path.dirname(sys.executable), "app.py")
-    subprocess.Popen([
-        sys.executable,
-        "-m", "streamlit",
-        "run",
-        app_path,
-        "--server.headless=true",
-        "--server.port=8501"
-    ])
+    # 防止 PyInstaller 子进程重复执行
+    if os.environ.get("STREAMLIT_LAUNCHED") == "1":
+        return
+    os.environ["STREAMLIT_LAUNCHED"] = "1"
+
+    subprocess.Popen(
+        [
+            sys.executable,
+            "-m",
+            "streamlit",
+            "run",
+            app_path,
+
+            # ======= 关键参数 =======
+            "--server.headless=true",
+            "--server.runOnSave=false",
+            "--server.fileWatcherType=none",
+            "--browser.gatherUsageStats=false",
+        ],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        creationflags=subprocess.CREATE_NO_WINDOW,
+    )
 
 if __name__ == "__main__":
-    if not is_port_open(8501):
-        t = threading.Thread(target=run_streamlit, daemon=True)
-        t.start()
-        time.sleep(2)
-
-    webview.create_window(
-        "多品种交易风控与研究系统",
-        "http://localhost:8501",
-        width=1280,
-        height=800
-    )
-    webview.start()
+    main()
